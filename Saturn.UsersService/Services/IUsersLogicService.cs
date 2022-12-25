@@ -6,5 +6,6 @@ namespace Saturn.UsersService.Services
     {
         public string GetJwtToken(ClaimsIdentity identity);
         public Task<ClaimsIdentity> GetClaimsIdentityAsync(long userId, string password);
+        public Task<ClaimsIdentity> GetClaimsIdentityAsync(string userEmail, string password);
     }
 }

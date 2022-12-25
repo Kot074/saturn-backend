@@ -174,7 +174,36 @@ namespace Saturn.UsersService.Controllers
 
                 var response = new UserLoginResponseDto
                 {
-                    Id = loginData.Id,
+                    User = identity.Name ?? "",
+                    Token = _usersLogicService.GetJwtToken(identity)
+                };
+
+                return Ok(response);
+            }
+            catch
+            {
+                return Unauthorized("Неверный Id пользователя и/или пароль.");
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("LoginByEmail")]
+        [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] UserLoginByEmailDto loginData)
+        {
+            try
+            {
+                var identity = await _usersLogicService.GetClaimsIdentityAsync(loginData.Email, loginData.Password);
+
+                if (identity is null)
+                {
+                    return Unauthorized("Неверный Id пользователя и/или пароль.");
+                }
+
+                var response = new UserLoginResponseDto
+                {
                     User = identity.Name ?? "",
                     Token = _usersLogicService.GetJwtToken(identity)
                 };
