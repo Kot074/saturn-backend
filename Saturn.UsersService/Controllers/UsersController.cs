@@ -16,12 +16,12 @@ namespace Saturn.UsersService.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUsersRepository _usersRepository;
-        private readonly IUsersLogicService _usersLogicService;
+        private readonly IUsersHelpersService _usersHelpersService;
 
-        public UsersController(IUsersRepository usersRepository, IUsersLogicService usersLogicService)
+        public UsersController(IUsersRepository usersRepository, IUsersHelpersService usersHelpersService)
         {
             _usersRepository = usersRepository;
-            _usersLogicService = usersLogicService;
+            _usersHelpersService = usersHelpersService;
         }
 
         [HttpPost]
@@ -165,7 +165,7 @@ namespace Saturn.UsersService.Controllers
         {
             try
             {
-                var identity = await _usersLogicService.GetClaimsIdentityAsync(loginData.Id, loginData.Password);
+                var identity = await _usersHelpersService.GetClaimsIdentityAsync(loginData.Id, loginData.Password);
 
                 if (identity is null)
                 {
@@ -175,7 +175,7 @@ namespace Saturn.UsersService.Controllers
                 var response = new UserLoginResponseDto
                 {
                     User = identity.Name ?? "",
-                    Token = _usersLogicService.GetJwtToken(identity)
+                    Token = _usersHelpersService.GetJwtToken(identity)
                 };
 
                 return Ok(response);
@@ -195,7 +195,7 @@ namespace Saturn.UsersService.Controllers
         {
             try
             {
-                var identity = await _usersLogicService.GetClaimsIdentityAsync(loginData.Email, loginData.Password);
+                var identity = await _usersHelpersService.GetClaimsIdentityAsync(loginData.Email, loginData.Password);
 
                 if (identity is null)
                 {
@@ -205,7 +205,7 @@ namespace Saturn.UsersService.Controllers
                 var response = new UserLoginResponseDto
                 {
                     User = identity.Name ?? "",
-                    Token = _usersLogicService.GetJwtToken(identity)
+                    Token = _usersHelpersService.GetJwtToken(identity)
                 };
 
                 return Ok(response);

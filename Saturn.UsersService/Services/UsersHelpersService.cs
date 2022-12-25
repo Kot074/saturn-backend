@@ -8,11 +8,11 @@ using System.Text;
 
 namespace Saturn.UsersService.Services
 {
-    public class UsersLogicService : IUsersLogicService
+    public class UsersHelpersService : IUsersHelpersService
     {
         private readonly IUsersRepository _usersRepository;
 
-        public UsersLogicService(IUsersRepository repository)
+        public UsersHelpersService(IUsersRepository repository)
         {
             _usersRepository = repository;
         }

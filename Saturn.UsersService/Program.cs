@@ -22,7 +22,7 @@ namespace Saturn.UsersService
             // Add services to the container.
 
             builder.Services.AddScoped<IUsersRepository, UsersRepository>();
-            builder.Services.AddScoped<IUsersLogicService, UsersLogicService>();
+            builder.Services.AddScoped<IUsersHelpersService, UsersHelpersService>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
