@@ -101,5 +101,19 @@ namespace Saturn.UsersService.Services
             }
             return null;
         }
+
+        public string EncodingString(string str)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                throw new ArgumentException("Кодируемая строка не может быть пустой.");
+            }
+
+            var bytePassword = Encoding.UTF8.GetBytes(str);
+            var sha256Key = SHA256.HashData(bytePassword);
+            var keyString = Encoding.UTF8.GetString(sha256Key);
+
+            return keyString;
+        }
     }
 }

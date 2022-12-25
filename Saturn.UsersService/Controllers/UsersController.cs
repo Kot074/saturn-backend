@@ -4,8 +4,6 @@ using Saturn.UsersService.Repositories;
 using Saturn.CommonLibrary.Models;
 using Saturn.UsersService.Database.Models;
 using Saturn.UsersService.Dto;
-using System.Text;
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Saturn.UsersService.Services;
 
@@ -31,15 +29,6 @@ namespace Saturn.UsersService.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] UserCreateDto user)
         {
-            if (string.IsNullOrWhiteSpace(user.Password))
-            {
-                return BadRequest("Возникла ошибка при сохраненнии пользователя!");
-            }
-
-            var bytePassword = Encoding.UTF8.GetBytes(user.Password);
-            var sha256Key = SHA256.HashData(bytePassword);
-            var keyString = Encoding.UTF8.GetString(sha256Key);
-
             var userDb = new UserDbModel
             {
                 Name = user.Name,
@@ -48,7 +37,7 @@ namespace Saturn.UsersService.Controllers
                 Email = user.Email,
                 Phone = user.Phone,
                 Role = user.Role,
-                Key = keyString
+                Key = _usersHelpersService.EncodingString(user.Password)
             };
             try
             {
@@ -118,11 +107,7 @@ namespace Saturn.UsersService.Controllers
 
                 if (!string.IsNullOrWhiteSpace(user.Password))
                 {
-                    var bytePassword = Encoding.UTF8.GetBytes(user.Password);
-                    var sha256Key = SHA256.HashData(bytePassword);
-                    var keyString = Encoding.UTF8.GetString(sha256Key);
-
-                    userDb.Key = keyString;
+                    userDb.Key = _usersHelpersService.EncodingString(user.Password);
                 }
 
                 userDb.Role = user.Role;
