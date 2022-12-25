@@ -6,11 +6,8 @@ using Saturn.UsersService.Database.Models;
 using Saturn.UsersService.Dto;
 using System.Text;
 using System.Security.Cryptography;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using Saturn.UsersService.Auth;
 using Microsoft.AspNetCore.Authorization;
+using Saturn.UsersService.Services;
 
 namespace Saturn.UsersService.Controllers
 {
@@ -19,10 +16,12 @@ namespace Saturn.UsersService.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUsersRepository _usersRepository;
+        private readonly IUsersLogicService _usersLogicService;
 
-        public UsersController(IUsersRepository usersRepository)
+        public UsersController(IUsersRepository usersRepository, IUsersLogicService usersLogicService)
         {
             _usersRepository = usersRepository;
+            _usersLogicService = usersLogicService;
         }
 
         [HttpPost]
@@ -160,71 +159,32 @@ namespace Saturn.UsersService.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("LoginById")]
-        [ProducesResponseType(typeof(UserModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] UserLoginByIdDto loginData)
         {
             try
             {
-                var identity = await GetIdentity(loginData.Id, loginData.Password);
+                var identity = await _usersLogicService.GetClaimsIdentityAsync(loginData.Id, loginData.Password);
 
                 if (identity is null)
                 {
                     return Unauthorized("Неверный Id пользователя и/или пароль.");
                 }
 
-                var now = DateTime.UtcNow;
-                var jwt = new JwtSecurityToken(
-                    issuer: AuthOptions.ISSUER,
-                    audience: AuthOptions.AUDIENCE,
-                    notBefore: now,
-                    claims: identity.Claims,
-                    expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
-                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-
-                var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-                var response = new
+                var response = new UserLoginResponseDto
                 {
                     Id = loginData.Id,
-                    User = identity.Name,
-                    Token = encodedJwt
+                    User = identity.Name ?? "",
+                    Token = _usersLogicService.GetJwtToken(identity)
                 };
+
                 return Ok(response);
             }
             catch
             {
                 return Unauthorized("Неверный Id пользователя и/или пароль.");
             }
-        }
-
-        private async Task<ClaimsIdentity> GetIdentity(long userId, string password)
-        {
-            var userDb = await _usersRepository.Read(userId);
-            var bytePassword = Encoding.UTF8.GetBytes(password);
-            var sha256Key = SHA256.HashData(bytePassword);
-            var keyString = Encoding.UTF8.GetString(sha256Key);
-
-            var shortName = string.IsNullOrWhiteSpace(userDb.Patronymic)
-                ? $"{userDb.Lastname} {userDb.Name[0]}."
-                : $"{userDb.Lastname} {userDb.Name[0]}. {userDb.Patronymic[0]}.";
-
-            if (string.Equals(userDb.Key, keyString))
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, userDb.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
-                    new Claim("shortName", shortName),
-                    new Claim("email", userDb.Email),
-                    new Claim("phone", userDb.Phone)
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-                    ClaimsIdentity.DefaultRoleClaimType);
-
-                return claimsIdentity;
-            }
-            return null;
         }
     }
 }

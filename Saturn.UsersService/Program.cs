@@ -1,5 +1,6 @@
 using Saturn.UsersService.Extensions;
 using Saturn.UsersService.Repositories;
+using Saturn.UsersService.Services;
 
 namespace Saturn.UsersService
 {
@@ -20,8 +21,10 @@ namespace Saturn.UsersService
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
             builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+            builder.Services.AddScoped<IUsersLogicService, UsersLogicService>();
+
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddApplicationAuthentication();
