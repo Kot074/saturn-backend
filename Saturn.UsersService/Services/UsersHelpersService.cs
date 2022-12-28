@@ -31,75 +31,92 @@ namespace Saturn.UsersService.Services
             return new JwtSecurityTokenHandler().WriteToken(jwt);
         }
 
-        public async Task<ClaimsIdentity> GetClaimsIdentityAsync(long userId, string password)
+        public async Task<ClaimsIdentity?> GetClaimsIdentityAsync(long userId, string password)
         {
-            var userDb = await _usersRepository.Read(userId);
-            if (userDb == null)
+            try
             {
-                throw new InvalidOperationException($"Пользователь с Id = {userId} не зарегистрирован.");
-            }
-
-            var bytePassword = Encoding.UTF8.GetBytes(password);
-            var sha256Key = SHA256.HashData(bytePassword);
-            var keyString = Encoding.UTF8.GetString(sha256Key);
-
-            var shortName = string.IsNullOrWhiteSpace(userDb.Patronymic)
-                ? $"{userDb.Lastname} {userDb.Name[0]}."
-                : $"{userDb.Lastname} {userDb.Name[0]}. {userDb.Patronymic[0]}.";
-
-            if (string.Equals(userDb.Key, keyString))
-            {
-                var claims = new List<Claim>
+                var userDb = await _usersRepository.Read(userId);
+                if (userDb == null)
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, userDb.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
-                    new Claim("id", userDb.Id.ToString()),
-                    new Claim("shortName", shortName),
-                    new Claim("email", userDb.Email),
-                    new Claim("phone", userDb.Phone)
-                };
+                    throw new InvalidOperationException($"Пользователь с Id = {userId} не зарегистрирован.");
+                }
 
-                var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-                    ClaimsIdentity.DefaultRoleClaimType);
+                var bytePassword = Encoding.UTF8.GetBytes(password);
+                var sha256Key = SHA256.HashData(bytePassword);
+                var keyString = Encoding.UTF8.GetString(sha256Key);
 
-                return claimsIdentity;
+                var shortName = string.IsNullOrWhiteSpace(userDb.Patronymic)
+                    ? $"{userDb.Lastname} {userDb.Name[0]}."
+                    : $"{userDb.Lastname} {userDb.Name[0]}. {userDb.Patronymic[0]}.";
+
+                if (string.Equals(userDb.Key, keyString))
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimsIdentity.DefaultNameClaimType, userDb.Email),
+                        new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
+                        new Claim("id", userDb.Id.ToString()),
+                        new Claim("shortName", shortName),
+                        new Claim("email", userDb.Email),
+                        new Claim("phone", userDb.Phone)
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
+                        ClaimsIdentity.DefaultRoleClaimType);
+
+                    return claimsIdentity;
+                }
+
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                throw new Exception("При попытке создания claimsIdentity произошла ошибка.", ex);
+            }
         }
-        public async Task<ClaimsIdentity> GetClaimsIdentityAsync(string userEmail, string password)
+        public async Task<ClaimsIdentity?> GetClaimsIdentityAsync(string userEmail, string password)
         {
-            var userDb = (await _usersRepository.ReadAll()).SingleOrDefault(_ => _.Email.Equals(userEmail, StringComparison.OrdinalIgnoreCase));
-            if (userDb == null)
+            try
             {
-                throw new InvalidOperationException($"Пользователь с email = \"{userEmail}\" не зарегистрирован.");
-            }
-
-            var bytePassword = Encoding.UTF8.GetBytes(password);
-            var sha256Key = SHA256.HashData(bytePassword);
-            var keyString = Encoding.UTF8.GetString(sha256Key);
-
-            var shortName = string.IsNullOrWhiteSpace(userDb.Patronymic)
-                ? $"{userDb.Lastname} {userDb.Name[0]}."
-                : $"{userDb.Lastname} {userDb.Name[0]}. {userDb.Patronymic[0]}.";
-
-            if (string.Equals(userDb.Key, keyString))
-            {
-                var claims = new List<Claim>
+                var userDb = (await _usersRepository.ReadAll()).SingleOrDefault(_ =>
+                    _.Email.Equals(userEmail, StringComparison.OrdinalIgnoreCase));
+                if (userDb == null)
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, userDb.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
-                    new Claim("id", userDb.Id.ToString()),
-                    new Claim("shortName", shortName),
-                    new Claim("email", userDb.Email),
-                    new Claim("phone", userDb.Phone)
-                };
+                    throw new InvalidOperationException($"Пользователь с email = \"{userEmail}\" не зарегистрирован.");
+                }
 
-                var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-                    ClaimsIdentity.DefaultRoleClaimType);
+                var bytePassword = Encoding.UTF8.GetBytes(password);
+                var sha256Key = SHA256.HashData(bytePassword);
+                var keyString = Encoding.UTF8.GetString(sha256Key);
 
-                return claimsIdentity;
+                var shortName = string.IsNullOrWhiteSpace(userDb.Patronymic)
+                    ? $"{userDb.Lastname} {userDb.Name[0]}."
+                    : $"{userDb.Lastname} {userDb.Name[0]}. {userDb.Patronymic[0]}.";
+
+                if (string.Equals(userDb.Key, keyString))
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimsIdentity.DefaultNameClaimType, userDb.Email),
+                        new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
+                        new Claim("id", userDb.Id.ToString()),
+                        new Claim("shortName", shortName),
+                        new Claim("email", userDb.Email),
+                        new Claim("phone", userDb.Phone)
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
+                        ClaimsIdentity.DefaultRoleClaimType);
+
+                    return claimsIdentity;
+                }
+
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                throw new Exception("При попытке создания claimsIdentity произошла ошибка.", ex);
+            }
         }
 
         public string EncodingString(string str)
