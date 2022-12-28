@@ -36,7 +36,7 @@ namespace Saturn.UsersService.Services
             var userDb = await _usersRepository.Read(userId);
             if (userDb == null)
             {
-                throw new InvalidOperationException("Пользователь с таким id не найден.");
+                throw new InvalidOperationException($"Пользователь с Id = {userId} не зарегистрирован.");
             }
 
             var bytePassword = Encoding.UTF8.GetBytes(password);
@@ -71,7 +71,7 @@ namespace Saturn.UsersService.Services
             var userDb = (await _usersRepository.ReadAll()).SingleOrDefault(_ => _.Email.Equals(userEmail, StringComparison.OrdinalIgnoreCase));
             if (userDb == null)
             {
-                throw new InvalidOperationException("Пользователь с таким email не зарегистрирован.");
+                throw new InvalidOperationException($"Пользователь с email = \"{userEmail}\" не зарегистрирован.");
             }
 
             var bytePassword = Encoding.UTF8.GetBytes(password);

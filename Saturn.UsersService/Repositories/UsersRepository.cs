@@ -26,9 +26,16 @@ namespace Saturn.UsersService.Repositories
         {
             return Task.Run(() =>
             {
-                return _dbContext.Users
-                    .AsNoTracking()
-                    .First(x => x.Id == id);
+                try
+                {
+                    return _dbContext.Users
+                        .AsNoTracking()
+                        .Single(x => x.Id == id);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Не удалось найти пользователя с Id = {id}", ex);
+                }
             });
         }
 
@@ -55,9 +62,16 @@ namespace Saturn.UsersService.Repositories
         {
             return Task.Run(async () =>
             {
-                var user = await Read(id);
-                _dbContext.Entry(user).State = EntityState.Deleted;
-                _dbContext.SaveChanges();
+                try
+                {
+                    var user = await Read(id);
+                    _dbContext.Entry(user).State = EntityState.Deleted;
+                    _dbContext.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    new Exception($"Не удалось удалить пользователя с Id = {id}.", ex);
+                }
             });
         }
     }

@@ -1,3 +1,4 @@
+using NLog.Web;
 using Saturn.UsersService.Extensions;
 using Saturn.UsersService.Repositories;
 using Saturn.UsersService.Services;
@@ -8,43 +9,64 @@ namespace Saturn.UsersService
     {
         public static void Main(string[] args)
         {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+
+            try
+            {
+                logger.Info("Конфигурирование сервиса...");
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
 #if (DEBUG)
-                .AddJsonFile("appsettings.Development.json")
+                    .AddJsonFile("appsettings.Development.json")
 #else
                 .AddJsonFile("appsettings.json")
 #endif
-                .Build();
+                    .Build();
 
-            var builder = WebApplication.CreateBuilder(args);
+                var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+                // Add services to the container.
 
-            builder.Services.AddScoped<IUsersRepository, UsersRepository>();
-            builder.Services.AddScoped<IUsersHelpersService, UsersHelpersService>();
+                builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+                builder.Services.AddScoped<IUsersHelpersService, UsersHelpersService>();
 
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
+                builder.Services.AddControllers();
+                builder.Services.AddEndpointsApiExplorer();
 
-            builder.Services.AddApplicationAuthentication();
-            builder.Services.AddApplicationSwagger();
+                builder.Services.AddApplicationAuthentication();
+                builder.Services.AddApplicationSwagger();
+                builder.Services.AddSingleton(typeof(NLog.Logger), logger);
 
-            var app = builder.Build();
+                // Configure logging
+                builder.Logging.ClearProviders();
+                builder.Host.UseNLog();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                var app = builder.Build();
+
+                // Configure the HTTP request pipeline.
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
+
+                app.UseHttpsRedirection();
+                app.UseAuthentication();
+                app.UseAuthorization();
+                app.MapControllers();
+
+                logger.Info("Запуск сервиса...");
+                app.Run();
             }
-
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.MapControllers();
-            app.Run();
+            catch (Exception ex)
+            {
+                logger.Error("При работе сервиса произошла ошибка. Работа будет завершена.", ex);
+            }
+            finally
+            {
+                NLog.LogManager.Shutdown();
+            }
         }
     }
 }
