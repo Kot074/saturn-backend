@@ -15,9 +15,9 @@ namespace Saturn.UsersService.Controllers
     {
         private readonly IUsersRepository _usersRepository;
         private readonly IUsersHelpersService _usersHelpersService;
-        private readonly NLog.Logger _logger;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUsersRepository usersRepository, IUsersHelpersService usersHelpersService, NLog.Logger logger)
+        public UsersController(IUsersRepository usersRepository, IUsersHelpersService usersHelpersService, ILogger<UsersController> logger)
         {
             _usersRepository = usersRepository;
             _usersHelpersService = usersHelpersService;
@@ -45,12 +45,12 @@ namespace Saturn.UsersService.Controllers
             {
                 await _usersRepository.Create(userDb);
 
-                _logger.Info($"Пользователь {user.Lastname} {user.Name} {user.Patronymic} успешно зарегистрирован.");
+                _logger.LogInformation($"Пользователь {user.Lastname} {user.Name} {user.Patronymic} успешно зарегистрирован.");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При регистрации пользователя {user.Lastname} {user.Name} {user.Patronymic} произошла ошибка.");
+                _logger.LogError(ex, $"При регистрации пользователя {user.Lastname} {user.Name} {user.Patronymic} произошла ошибка.");
                 return BadRequest($"При регистрации пользователя {user.Lastname} {user.Name} {user.Patronymic} произошла ошибка.");
             }
         }
@@ -66,12 +66,12 @@ namespace Saturn.UsersService.Controllers
             {
                 var user = new UserModel(await _usersRepository.Read(id));
 
-                _logger.Info($"Найден пользователь {user.Lastname} {user.Name} {user.Patronymic}.");
+                _logger.LogInformation($"Найден пользователь {user.Lastname} {user.Name} {user.Patronymic}.");
                 return Ok(user);
             }
             catch (InvalidOperationException ex)
             {
-                _logger.Error(ex, $"При попытке получения пользователя (Id = {id}) произошла ошибка.");
+                _logger.LogError(ex, $"При попытке получения пользователя (Id = {id}) произошла ошибка.");
                 return NotFound($"Пользователь с Id = {id} не найден.");
             }
         }
@@ -87,12 +87,12 @@ namespace Saturn.UsersService.Controllers
             {
                 var users = await _usersRepository.ReadAll();
 
-                _logger.Info($"Список пользователей успешно получен.");
+                _logger.LogInformation($"Список пользователей успешно получен.");
                 return Ok(users.Select(user => new UserModel(user)));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При попытке получения списка пользователей произошла ошибка.");
+                _logger.LogError(ex, $"При попытке получения списка пользователей произошла ошибка.");
                 return BadRequest($"При попытке получения списка пользователей произошла ошибка.");
             }
         }
@@ -122,12 +122,12 @@ namespace Saturn.UsersService.Controllers
 
                 await _usersRepository.Update(userDb);
 
-                _logger.Info($"Данные пользователя {user.Email} были успешно обновлены.");
+                _logger.LogInformation($"Данные пользователя {user.Email} были успешно обновлены.");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При попытке обновления данных пользователя произошла ошибка.");
+                _logger.LogError(ex, $"При попытке обновления данных пользователя произошла ошибка.");
                 return BadRequest("Возникла ошибка при изменении данных пользователя!");
             }
         }
@@ -143,12 +143,12 @@ namespace Saturn.UsersService.Controllers
             {
                 await _usersRepository.Delete(id);
 
-                _logger.Info($"Данные пользователя (Id = {id}) были успешно удалены.");
+                _logger.LogInformation($"Данные пользователя (Id = {id}) были успешно удалены.");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При попытке удаления данных пользователя произошла ошибка.");
+                _logger.LogError(ex, $"При попытке удаления данных пользователя произошла ошибка.");
                 return BadRequest("При попытке удаления данных пользователя произошла ошибка.");
             }
         }
@@ -166,7 +166,7 @@ namespace Saturn.UsersService.Controllers
 
                 if (identity is null)
                 {
-                    _logger.Error($"При попытке авторизации неверно введены id пользователя и/или пароль.", loginData);
+                    _logger.LogError($"При попытке авторизации неверно введены id пользователя и/или пароль.", loginData);
                     return Unauthorized("Неверный Id пользователя и/или пароль.");
                 }
 
@@ -176,12 +176,12 @@ namespace Saturn.UsersService.Controllers
                     Token = _usersHelpersService.GetJwtToken(identity)
                 };
 
-                _logger.Info($"Авторизация прошла успешно (получен токен).");
+                _logger.LogInformation($"Авторизация прошла успешно (получен токен).");
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При попытке авторизации по id произошла ошибка.");
+                _logger.LogError(ex, $"При попытке авторизации по id произошла ошибка.");
                 return Unauthorized("При попытке авторизации по id произошла ошибка.");
             }
         }
@@ -199,7 +199,7 @@ namespace Saturn.UsersService.Controllers
 
                 if (identity is null)
                 {
-                    _logger.Error($"При попытке авторизации неверно введены email пользователя и/или пароль.", loginData);
+                    _logger.LogError($"При попытке авторизации неверно введены email пользователя и/или пароль.", loginData);
                     return Unauthorized("Неверный Email пользователя и/или пароль.");
                 }
 
@@ -209,12 +209,12 @@ namespace Saturn.UsersService.Controllers
                     Token = _usersHelpersService.GetJwtToken(identity)
                 };
 
-                _logger.Info($"Авторизация прошла успешно (получен токен).");
+                _logger.LogInformation($"Авторизация прошла успешно (получен токен).");
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"При попытке авторизации по email произошла ошибка.");
+                _logger.LogError(ex, $"При попытке авторизации по email произошла ошибка.");
                 return Unauthorized("При попытке авторизации по email произошла ошибка.");
             }
         }
