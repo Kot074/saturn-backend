@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Saturn.UsersService.Common;
 using Saturn.UsersService.Database.Models;
 
 namespace Saturn.UsersService.Database
@@ -14,7 +15,19 @@ namespace Saturn.UsersService.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(_configuration.GetValue<string>("DbConnectionString"));
+#if DOCKER
+            var connectionString = Environment.GetEnvironmentVariable(CommonConst.ConnectionStringVariable);
+            if (connectionString != null)
+            {
+                options.UseSqlServer(connectionString);
+            }
+            else
+            {
+                throw new NullReferenceException($"Переменная окружения {CommonConst.ConnectionStringVariable} не существует!");
+            }
+#else
+            options.UseSqlServer(_configuration.GetValue<string>(CommonConst.ConfigurationConnectionStringField));
+#endif
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
