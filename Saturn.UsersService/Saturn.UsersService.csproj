@@ -7,6 +7,10 @@
     <Configurations>Debug;Release;Docker</Configurations>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Docker|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Remove="nlog.config" />
   </ItemGroup>
