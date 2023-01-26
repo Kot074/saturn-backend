@@ -16,8 +16,7 @@ namespace Saturn.UsersService.Database
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
 #if DOCKER
-            var connectionString = Environment.GetEnvironmentVariable(CommonConst.ConnectionStringVariable, EnvironmentVariableTarget.Machine) ??
-                                   Environment.GetEnvironmentVariable(CommonConst.ConnectionStringVariable, EnvironmentVariableTarget.User);
+            var connectionString = Environment.GetEnvironmentVariable(CommonConst.ConnectionStringVariable);
             if (connectionString != null)
             {
                 options.UseSqlServer(connectionString);
