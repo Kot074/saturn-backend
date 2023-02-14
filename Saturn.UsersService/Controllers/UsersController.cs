@@ -157,7 +157,6 @@ namespace Saturn.UsersService.Controllers
         [AllowAnonymous]
         [Route("LoginById")]
         [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] UserLoginByIdDto loginData)
         {
             try

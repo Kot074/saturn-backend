@@ -26,6 +26,7 @@ namespace Saturn.UsersService
                 var builder = WebApplication.CreateBuilder(args);
 
                 // Add services to the container.
+                builder.Services.AddHostedService<InitiallizeHostedService>();
 
                 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
                 builder.Services.AddScoped<IUsersHelpersService, UsersHelpersService>();
