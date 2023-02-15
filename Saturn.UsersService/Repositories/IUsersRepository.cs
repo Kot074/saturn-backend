@@ -1,4 +1,6 @@
-﻿using Saturn.UsersService.Database.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Saturn.UsersService.Database.Models;
 
 namespace Saturn.UsersService.Repositories
 {

@@ -1,10 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Saturn.UsersService.Repositories;
 using Saturn.CommonLibrary.Models;
 using Saturn.UsersService.Database.Models;
 using Saturn.UsersService.Dto;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Saturn.UsersService.Services;
 
 namespace Saturn.UsersService.Controllers

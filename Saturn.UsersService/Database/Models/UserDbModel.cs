@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Saturn.CommonLibrary.Models;
 
 namespace Saturn.UsersService.Database.Models
