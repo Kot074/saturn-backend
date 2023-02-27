@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using NLog.Web;
 using Saturn.CommonLibrary.Models;
 using Saturn.UsersService.Common;
 using Saturn.UsersService.Database;
@@ -17,6 +18,7 @@ namespace Saturn.UsersService.Services
     {
         private readonly IUsersHelpersService _usersHelpers;
         private readonly IUsersRepository _usersRepository;
+        private readonly NLog.ILogger _logger;
 
         private readonly DbContext _dbContext;
         private readonly string _ownerEmail;
@@ -24,12 +26,13 @@ namespace Saturn.UsersService.Services
 
         public InitiallizeHostedService(IConfiguration configuration)
         {
+            _logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 #if DOCKER
-            var _ownerEmail = configuration.GetValue<string>(CommonConst.OwnerEmailVariable)
-                              ?? throw new NullReferenceException($"Переменная окружения {CommonConst.OwnerEmailVariable} не существует!");
-            var _ownerPassword = configuration.GetValue<string>(CommonConst.OwnerPasswordVariable)
-                                 ?? throw new NullReferenceException($"Переменная окружения {CommonConst.OwnerPasswordVariable} не существует!");
+            _logger.Info($"Чтение данных первого пользователя из переменных окружения...");
+            _ownerEmail = Environment.GetEnvironmentVariable(CommonConst.OwnerEmailVariable);
+            _ownerPassword = Environment.GetEnvironmentVariable(CommonConst.OwnerPasswordVariable);
 #else
+            _logger.Info($"Чтение данных первого пользователя из конфигурационного файла...");
             _ownerEmail = configuration.GetValue<string>(CommonConst.ConfigurationOwnerEmailField);
             _ownerPassword = configuration.GetValue<string>(CommonConst.ConfigurationOwnerPasswordField);
 #endif
@@ -41,25 +44,31 @@ namespace Saturn.UsersService.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            return Task.Run(() =>
+            _dbContext.Database.Migrate();
+
+            var users = _usersRepository.ReadAll().Result;
+
+            if (!string.IsNullOrWhiteSpace(_ownerEmail) && !string.IsNullOrWhiteSpace(_ownerPassword) && !users.Any())
             {
-                _dbContext.Database.Migrate();
-
-                var users = _usersRepository.ReadAll().Result;
-                if (!string.IsNullOrWhiteSpace(_ownerEmail) && !string.IsNullOrWhiteSpace(_ownerPassword) && !users.Any())
+                _logger.Info("Создание первого пользователя...");
+                var userDb = new UserDbModel
                 {
-                    var userDb = new UserDbModel
-                    {
-                        Name = "EMPTY",
-                        Lastname = "EMPTY",
-                        Email = _ownerEmail,
-                        Role = UserRoles.Administrator,
-                        Key = _usersHelpers.EncodingString(_ownerPassword)
-                    };
+                    Name = "EMPTY",
+                    Lastname = "EMPTY",
+                    Email = _ownerEmail,
+                    Role = UserRoles.Administrator,
+                    Key = _usersHelpers.EncodingString(_ownerPassword)
+                };
 
-                    _usersRepository.Create(userDb);
-                }
-            });
+                _usersRepository.Create(userDb);
+            }
+            else if (!users.Any())
+            {
+                _logger.Error("В базе данных нет ни одного пользователя.");
+                throw new InvalidOperationException();
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
