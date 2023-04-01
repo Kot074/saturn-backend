@@ -1,9 +1,3 @@
-using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NLog.Web;
 using Saturn.UsersService.Extensions;
 using Saturn.UsersService.Repositories;
@@ -39,6 +33,7 @@ namespace Saturn.UsersService
 
                 builder.Services.AddControllers();
                 builder.Services.AddEndpointsApiExplorer();
+                builder.Services.AddCors();
 
                 builder.Services.AddApplicationAuthentication();
                 builder.Services.AddApplicationSwagger();
@@ -58,6 +53,12 @@ namespace Saturn.UsersService
                     app.UseSwaggerUI();
                 }
 
+                app.UseCors(opt =>
+                {
+                    opt.AllowAnyOrigin();
+                    opt.AllowAnyMethod();
+                    opt.AllowAnyHeader();
+                });
                 app.UseHttpsRedirection();
                 app.UseAuthentication();
                 app.UseAuthorization();
