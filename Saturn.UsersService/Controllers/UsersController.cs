@@ -138,12 +138,12 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize(Roles = "Administrator")]
         [Route("Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Delete([FromBody][Required] long id)
+        public async Task<IActionResult> Delete([FromQuery][Required] long id)
         {
             try
             {
@@ -175,8 +175,13 @@ namespace Saturn.UsersService.Controllers
                     return Unauthorized("Неверный Id пользователя и/или пароль.");
                 }
 
+
+                var id = identity.Claims.First(_ => _.Type.Equals("id")).Value;
+                var shortname = identity.Claims.First(_ => _.Type.Equals("shortName")).Value;
                 var response = new UserLoginResponseDto
                 {
+                    Id = long.Parse(id),
+                    ShortName = shortname,
                     User = identity.Name ?? "",
                     Token = _usersHelpersService.GetJwtToken(identity)
                 };
@@ -208,8 +213,12 @@ namespace Saturn.UsersService.Controllers
                     return Unauthorized("Неверный Email пользователя и/или пароль.");
                 }
 
+                var id = identity.Claims.First(_ => _.Type.Equals("id")).Value;
+                var shortname = identity.Claims.First(_ => _.Type.Equals("shortName")).Value;
                 var response = new UserLoginResponseDto
                 {
+                    Id = long.Parse(id),
+                    ShortName = shortname,
                     User = identity.Name ?? "",
                     Token = _usersHelpersService.GetJwtToken(identity)
                 };
