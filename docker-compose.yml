@@ -1,0 +1,22 @@
+version: "3"
+services:
+  saturn-mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Kot_12345
+    ports:
+      - "1435:1433"
+  saturn-users:
+    image: saturnusersservice
+    links:
+      - saturn-mssql:saturn-db
+    environment:
+      - SATURN_DB_CONNECTION_STRING=Data Source=saturn-db; Initial Catalog=Saturn; User Id=sa; Password=Kot_12345
+      - SATURN_OWNER_EMAIL=kot.074@mail.ru
+      - SATURN_OWNER_PASSWORD=12345
+    ports:
+      - "7400:80"
+      - "7401:443"
+    volumes:
+      - D:/logs:/app/logs

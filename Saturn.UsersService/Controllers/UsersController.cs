@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Saturn.UsersService.Repositories;
 using Saturn.CommonLibrary.Models;
 using Saturn.UsersService.Database.Models;
 using Saturn.UsersService.Dto;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Saturn.UsersService.Services;
 
 namespace Saturn.UsersService.Controllers
@@ -32,7 +26,7 @@ namespace Saturn.UsersService.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Administrator")]
-        [Route("Create")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] UserCreateDto user)
@@ -63,37 +57,20 @@ namespace Saturn.UsersService.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Administrator, User")]
-        [Route("Get")]
-        [ProducesResponseType(typeof(UserModel), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromQuery] long id)
-        {
-            try
-            {
-                var user = new UserModel(await _usersRepository.Read(id));
-
-                _logger.LogInformation($"Найден пользователь {user.Lastname} {user.Name} {user.Patronymic}.");
-                return Ok(user);
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, $"При попытке получения пользователя (Id = {id}) произошла ошибка.");
-                return NotFound($"Пользователь с Id = {id} не найден.");
-            }
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Administrator, User")]
-        [Route("GetAll")]
         [ProducesResponseType(typeof(IEnumerable<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> Get([FromQuery] long? id)
         {
             try
             {
                 var users = await _usersRepository.ReadAll();
 
                 _logger.LogInformation($"Список пользователей успешно получен.");
+                if (id.HasValue)
+                {
+                    var user = users.Where(user => user.Id == id).Select(user => new UserModel(user));
+                    return Ok(user);
+                }
                 return Ok(users.Select(user => new UserModel(user)));
             }
             catch (Exception ex)
@@ -103,9 +80,8 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize(Roles = "Administrator, User")]
-        [Route("Update")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update([FromBody] UserUpdateDto user)
@@ -140,7 +116,6 @@ namespace Saturn.UsersService.Controllers
 
         [HttpDelete]
         [Authorize(Roles = "Administrator")]
-        [Route("Delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete([FromQuery][Required] long id)
@@ -159,78 +134,6 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [Route("LoginById")]
-        [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Login([FromBody] UserLoginByIdDto loginData)
-        {
-            try
-            {
-                var identity = await _usersHelpersService.GetClaimsIdentityAsync(loginData.Id, loginData.Password);
 
-                if (identity is null)
-                {
-                    _logger.LogError($"При попытке авторизации неверно введены id пользователя и/или пароль.", loginData);
-                    return Unauthorized("Неверный Id пользователя и/или пароль.");
-                }
-
-
-                var id = identity.Claims.First(_ => _.Type.Equals("id")).Value;
-                var shortname = identity.Claims.First(_ => _.Type.Equals("shortName")).Value;
-                var response = new UserLoginResponseDto
-                {
-                    Id = long.Parse(id),
-                    ShortName = shortname,
-                    User = identity.Name ?? "",
-                    Token = _usersHelpersService.GetJwtToken(identity)
-                };
-
-                _logger.LogInformation($"Авторизация прошла успешно (получен токен).");
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"При попытке авторизации по id произошла ошибка.");
-                return Unauthorized("При попытке авторизации по id произошла ошибка.");
-            }
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [Route("LoginByEmail")]
-        [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserLoginByEmailDto loginData)
-        {
-            try
-            {
-                var identity = await _usersHelpersService.GetClaimsIdentityAsync(loginData.Email, loginData.Password);
-
-                if (identity is null)
-                {
-                    _logger.LogError($"При попытке авторизации неверно введены email пользователя и/или пароль.", loginData);
-                    return Unauthorized("Неверный Email пользователя и/или пароль.");
-                }
-
-                var id = identity.Claims.First(_ => _.Type.Equals("id")).Value;
-                var shortname = identity.Claims.First(_ => _.Type.Equals("shortName")).Value;
-                var response = new UserLoginResponseDto
-                {
-                    Id = long.Parse(id),
-                    ShortName = shortname,
-                    User = identity.Name ?? "",
-                    Token = _usersHelpersService.GetJwtToken(identity)
-                };
-
-                _logger.LogInformation($"Авторизация прошла успешно (получен токен).");
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"При попытке авторизации по email произошла ошибка.");
-                return Unauthorized("При попытке авторизации по email произошла ошибка.");
-            }
-        }
     }
 }
