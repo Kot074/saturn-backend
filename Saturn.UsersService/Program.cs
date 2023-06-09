@@ -38,6 +38,7 @@ namespace Saturn.UsersService
                 builder.Services.AddApplicationAuthentication();
                 builder.Services.AddApplicationSwagger();
                 builder.Services.AddSingleton(typeof(NLog.Logger), logger);
+                builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
                 // Configure logging
                 builder.Logging.ClearProviders();

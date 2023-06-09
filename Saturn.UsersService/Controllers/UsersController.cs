@@ -24,7 +24,15 @@ namespace Saturn.UsersService.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpGet("get_roles")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetRoles()
+        {
+            return Ok(Enum.GetNames(typeof(UserRoles)));
+        }
+
+        [HttpPost("create_user")]
         [Authorize(Roles = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -55,22 +63,18 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("get_users")]
         [Authorize(Roles = "Administrator, User")]
         [ProducesResponseType(typeof(IEnumerable<UserModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get([FromQuery] long? id)
+        public async Task<IActionResult> Get()
         {
             try
             {
                 var users = await _usersRepository.ReadAll();
 
                 _logger.LogInformation($"Список пользователей успешно получен.");
-                if (id.HasValue)
-                {
-                    var user = users.Where(user => user.Id == id).Select(user => new UserModel(user));
-                    return Ok(user);
-                }
+
                 return Ok(users.Select(user => new UserModel(user)));
             }
             catch (Exception ex)
@@ -80,7 +84,30 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpGet("get_user/")]
+        [Authorize(Roles = "Administrator, User")]
+        [ProducesResponseType(typeof(UserModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Get([Required][FromQuery] long id)
+        {
+            {
+                try
+                {
+                    var user = await _usersRepository.Read(id);
+
+                    _logger.LogInformation($"Пользователь успешно получен.");
+
+                    return Ok(new UserModel(user));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"При попытке получения пользователя произошла ошибка.");
+                    return BadRequest($"При попытке получения пользователя произошла ошибка.");
+                }
+            }
+        }
+
+        [HttpPut("update_user")]
         [Authorize(Roles = "Administrator, User")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -114,7 +141,7 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("delete_user")]
         [Authorize(Roles = "Administrator")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

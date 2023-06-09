@@ -18,7 +18,7 @@ namespace Saturn.UsersService.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("by_email")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
