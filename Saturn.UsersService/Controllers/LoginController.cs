@@ -36,12 +36,14 @@ namespace Saturn.UsersService.Controllers
 
                 var id = identity.Claims.First(_ => _.Type.Equals("id")).Value;
                 var shortname = identity.Claims.First(_ => _.Type.Equals("shortName")).Value;
+                var role = identity.Claims.First(_ => _.Type.Equals("role")).Value;
                 var response = new UserLoginResponseDto
                 {
                     Id = long.Parse(id),
                     ShortName = shortname,
                     User = identity.Name ?? "",
-                    Token = _usersHelpersService.GetJwtToken(identity)
+                    Token = _usersHelpersService.GetJwtToken(identity),
+                    Role = role
                 };
 
                 _logger.LogInformation($"Авторизация прошла успешно (получен токен).");
