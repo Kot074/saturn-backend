@@ -116,11 +116,11 @@ namespace Saturn.UsersService.Controllers
             try
             {
                 var userDb = await _usersRepository.Read(user.Id);
-                userDb.Name = string.IsNullOrWhiteSpace(user.Name) ? userDb.Name : user.Name;
-                userDb.Lastname = string.IsNullOrWhiteSpace(user.Lastname) ? userDb.Lastname : user.Lastname;
-                userDb.Patronymic = string.IsNullOrWhiteSpace(user.Patronymic) ? userDb.Name : user.Patronymic;
-                userDb.Email = string.IsNullOrWhiteSpace(user.Email) ? userDb.Email : user.Email;
-                userDb.Phone = string.IsNullOrWhiteSpace(user.Phone) ? userDb.Phone : user.Phone;
+                userDb.Name = user.Name;
+                userDb.Lastname = user.Lastname;
+                userDb.Patronymic = user.Patronymic;
+                userDb.Email = user.Email;
+                userDb.Phone = user.Phone;
 
                 if (!string.IsNullOrWhiteSpace(user.Password))
                 {
