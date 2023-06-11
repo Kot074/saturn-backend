@@ -84,7 +84,7 @@ namespace Saturn.UsersService.Controllers
             }
         }
 
-        [HttpGet("get_user/")]
+        [HttpGet("get_user")]
         [Authorize(Roles = "Administrator, User")]
         [ProducesResponseType(typeof(UserModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -127,6 +127,11 @@ namespace Saturn.UsersService.Controllers
                     userDb.Key = _usersHelpersService.EncodingString(user.Password);
                 }
 
+                var currentUserId = _usersHelpersService.GetCurrentUserId(Request);
+                if (currentUserId == user.Id && userDb.Role != user.Role)
+                {
+                    return BadRequest("Невозможно изменить роль самому себе.");
+                }
                 userDb.Role = user.Role;
 
                 await _usersRepository.Update(userDb);
@@ -149,6 +154,12 @@ namespace Saturn.UsersService.Controllers
         {
             try
             {
+                var currentUserId = _usersHelpersService.GetCurrentUserId(Request);
+                if (currentUserId == id)
+                {
+                    return BadRequest("Невозможно удалить свою учетную запись.");
+                }
+
                 await _usersRepository.Delete(id);
 
                 _logger.LogInformation($"Данные пользователя (Id = {id}) были успешно удалены.");

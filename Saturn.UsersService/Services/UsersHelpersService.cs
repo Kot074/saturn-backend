@@ -136,5 +136,14 @@ namespace Saturn.UsersService.Services
 
             return keyString;
         }
+
+        public long GetCurrentUserId(HttpRequest request)
+        {
+            request.Headers.TryGetValue("Authorization", out var header);
+            var handler = new JwtSecurityTokenHandler();
+            var jwtSecurityToken = handler.ReadJwtToken(header.ToString().Split(' ').Last());
+            var idStr = jwtSecurityToken.Claims.First(_ => _.Type == "id").Value;
+            return long.Parse(idStr);
+        }
     }
 }
