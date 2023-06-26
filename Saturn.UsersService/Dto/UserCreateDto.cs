@@ -16,6 +16,7 @@ namespace Saturn.UsersService.Dto
         [Required(ErrorMessage = "Пароль обязателен для заполнения.")]
         public string Password { get; set; }
         public UserRoles Role { get; set; }
+        public string? Avatar { get; set; }
 
         public UserCreateDto()
         {

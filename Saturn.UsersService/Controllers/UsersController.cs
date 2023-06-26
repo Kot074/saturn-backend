@@ -47,7 +47,8 @@ namespace Saturn.UsersService.Controllers
                 Email = user.Email,
                 Phone = user.Phone,
                 Role = user.Role,
-                Key = _usersHelpersService.EncodingString(user.Password)
+                Key = _usersHelpersService.EncodingString(user.Password),
+                Avatar = user.Avatar,
             };
             try
             {
@@ -121,6 +122,7 @@ namespace Saturn.UsersService.Controllers
                 userDb.Patronymic = user.Patronymic;
                 userDb.Email = user.Email;
                 userDb.Phone = user.Phone;
+                userDb.Avatar = user.Avatar;
 
                 if (!string.IsNullOrWhiteSpace(user.Password))
                 {

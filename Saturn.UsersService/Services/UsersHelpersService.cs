@@ -61,9 +61,6 @@ namespace Saturn.UsersService.Services
                         new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
                         new Claim("id", userDb.Id.ToString()),
                         new Claim("shortName", shortName),
-                        new Claim("email", userDb.Email),
-                        new Claim("phone", userDb.Phone),
-                        new Claim("role", userDb.Role.ToString())
                     };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
@@ -106,10 +103,6 @@ namespace Saturn.UsersService.Services
                         new Claim(ClaimsIdentity.DefaultRoleClaimType, userDb.Role.ToString()),
                         new Claim("id", userDb.Id.ToString()),
                         new Claim("shortName", shortName),
-                        new Claim("email", userDb.Email),
-                        new Claim("phone", userDb.Phone),
-                        new Claim("role", userDb.Role.ToString()),
-                        new Claim("avatar", userDb.Avatar ?? ""),
                     };
 
                     var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

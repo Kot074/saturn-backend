@@ -19,6 +19,7 @@ namespace Saturn.UsersService.Dto
         public string? Password { get; set; }
         [Required(ErrorMessage = "Обновляемый пользователь должен иметь роль в системе.")]
         public UserRoles Role { get; set; }
+        public string? Avatar { get; set; }
 
         public UserUpdateDto()
         {
