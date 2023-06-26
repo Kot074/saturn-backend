@@ -11,6 +11,7 @@ namespace Saturn.CommonLibrary.Models
         public string Email { get; set; }
         public string Phone { get; set; }
         public UserRoles Role { get; set; }
+        public string? Avatar { get; set; }
 
         public UserModel()
         {
@@ -30,6 +31,7 @@ namespace Saturn.CommonLibrary.Models
             Email = user.Email;
             Phone = user.Phone;
             Role = user.Role;
+            Avatar = user.Avatar;
         }
     }
 
